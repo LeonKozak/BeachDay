@@ -44,12 +44,24 @@ def score_hour(hour):
     if hour["cloud_cover"] < CLOUD_LIMIT:
         score += CLOUD_POINTS
 
-    if hour["wave_height"] < WAVES_CALM_LIMIT:
+    wave_category = get_wave_category(hour["wave_height"])
+    if wave_category == "calm":
         score += WAVES_CALM_POINTS
-    elif hour["wave_height"] <= WAVES_MODERATE_MAX:
+    elif wave_category == "moderate":
         score += WAVES_MODERATE_POINTS
 
     return score
+
+
+def get_wave_category(wave_height):
+    """Return "calm", "moderate" or "rough", or None if the height is missing."""
+    if wave_height < WAVES_CALM_LIMIT:
+        return "calm"
+    if wave_height <= WAVES_MODERATE_MAX:
+        return "moderate"
+    if wave_height > WAVES_MODERATE_MAX:
+        return "rough"
+    return None  # a missing value (NaN) fails every comparison above
 
 
 def get_verdict(score):

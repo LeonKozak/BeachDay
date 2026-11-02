@@ -1,7 +1,14 @@
 import pytest
 
 import scoring
-from scoring import get_verdict, has_deal_breaker, is_daylight, rate_hour, score_hour
+from scoring import (
+    get_verdict,
+    get_wave_category,
+    has_deal_breaker,
+    is_daylight,
+    rate_hour,
+    score_hour,
+)
 
 SUNRISE = "2026-11-02T07:30"
 SUNSET = "2026-11-02T18:30"
@@ -109,6 +116,23 @@ def test_missing_value_earns_no_points():
 )
 def test_verdict(score, expected):
     assert get_verdict(score) == expected
+
+
+# Wave categories
+
+
+@pytest.mark.parametrize(
+    "wave_height, expected",
+    [
+        (scoring.WAVES_CALM_LIMIT - STEP, "calm"),
+        (scoring.WAVES_CALM_LIMIT, "moderate"),
+        (scoring.WAVES_MODERATE_MAX, "moderate"),
+        (scoring.WAVES_MODERATE_MAX + STEP, "rough"),
+        (float("nan"), None),
+    ],
+)
+def test_wave_category(wave_height, expected):
+    assert get_wave_category(wave_height) == expected
 
 
 # Night
