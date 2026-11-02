@@ -1,92 +1,113 @@
 # Beach Day: Playa de San Juan
 
-A small Streamlit web app that tells you whether today is a good beach day at Playa de San Juan (Alicante, Spain), using free Open-Meteo forecasts.
+**Is today a good beach day?** A Streamlit web app that scores beach conditions
+hour by hour at Playa de San Juan (Alicante, Spain) from live weather and sea
+forecasts, and tells you the best time to go.
 
-<!-- Replace the line below with a real screenshot, e.g. ![The Beach Day app](screenshot.png) -->
-*Screenshot coming soon.*
+**Live app:** https://beach-day-san-juan.streamlit.app/
+
+![The app: best time today, current conditions as pixel-art tiles, and an hourly strip](docs/screenshots/app.png)
+
+![Beach score per hour as coloured bars, with the feels-like temperature as a line](docs/screenshots/chart.png)
+
+## What it shows
+
+- **Best time today:** the longest run of good hours still to come, with a
+  short reason (e.g. "cloudy, moderate sea, light wind, feels like 20 °C").
+- **Right now:** the current hour's verdict and score.
+- **Sky, wind and waves** as original 16-bit pixel-art animations, generated
+  in Python with Pillow.
+- **An hourly strip** for daylight hours: sky, feels-like temperature and a
+  coloured verdict dot.
+- **A chart** of the beach score per hour (bars coloured Go / Maybe / Stay
+  home) with the feels-like temperature, and the best window shaded.
+- **All the data** in a collapsible table for anyone who wants the details.
 
 ## How the beach score works
 
-Each hour of the day is rated in three steps, in this order.
+Each hour is rated in three steps:
 
-### 1. Night
+1. **Night:** hours outside sunrise–sunset get the verdict "Night" and no score.
+2. **Deal breakers:** any of these forces "Stay home", whatever the score:
+   rain chance of 50% or more, wind over 30 km/h, gusts over 50 km/h, or a
+   rough sea (waves over 1 m).
+3. **Points:** otherwise the hour earns points out of 10:
 
-Any hour outside sunrise to sunset is marked "Night" and gets no score.
-
-### 2. Points
-
-Each daylight hour gets a score out of 10:
-
-| Condition | Rule | Points |
-|---|---|---|
-| Feels-like temperature | 20 to 32 °C | 3 |
+| Rule | Condition | Points |
+| --- | --- | --- |
+| Feels-like temperature | 20–32 °C | 3 |
 | Rain chance | under 20% | 2 |
 | Wind | under 20 km/h | 1 |
 | Gusts | under 35 km/h | 1 |
-| Cloud cover | under 50% | 1 |
-| Waves | calm: under 0.5 m | 2 |
-| | moderate: 0.5 to 1.0 m | 1 |
+| Cloud | under 50% | 1 |
+| Waves | calm (under 0.5 m) / moderate (0.5–1 m) | 2 / 1 |
 
-A missing value earns no points.
+**Verdict:** Go (9–10), Maybe (6–8), Stay home (0–5).
 
-The score gives the verdict:
+All limits are named constants at the top of `scoring.py`. The sky, wind and
+wave pictures use the same constants, so they always agree with the score.
 
-| Score | Verdict |
-|---|---|
-| 9 to 10 | Go |
-| 6 to 8 | Maybe |
-| 0 to 5 | Stay home |
+## Data and limitations
 
-### 3. Deal breakers
-
-Any one of these makes the hour "Stay home", whatever its score:
-
-- Rain chance of 50% or more
-- Wind over 30 km/h
-- Gusts over 50 km/h
-- Waves over 1.0 m
+- Weather and sea forecasts come from [Open-Meteo](https://open-meteo.com/)
+  (free, no API key).
+- **The sea data comes from about 10 km offshore.** Open-Meteo's marine grid
+  has no point closer to the beach on this side of Cabo de las Huertas, so the
+  waves describe open water; conditions at the shoreline may be calmer.
+- The verdict is a forecast-based estimate, **not the official lifeguard
+  flag**. Always follow the flags and lifeguards on the beach.
 
 ## Run it locally
 
-You need Python 3.11 or newer.
-
 ```
-git clone https://github.com/LeonKozak/BeachDay.git
-cd BeachDay
-pip install -r requirements.txt
-streamlit run app.py
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
 ```
 
-To run the tests:
+Run the tests:
 
 ```
 python -m pytest
 ```
 
-## Data source
+Regenerate the pixel-art GIFs (only needed if you change their design):
 
-All forecasts come from [Open-Meteo](https://open-meteo.com/), which is free and needs no API key: the [Weather Forecast API](https://open-meteo.com/en/docs) for weather, sunrise and sunset, and the [Marine Weather API](https://open-meteo.com/en/docs/marine-weather-api) for waves. The app keeps each response for 1 hour, so a page refresh doesn't call the API again.
+```
+python make_gifs.py
+```
 
-**Limitation: the waves are not measured at the beach.** The marine forecast uses a coarse grid with no point at the beach itself. Asking for the beach's coordinates returns a point about 9 km to the south, so the app asks for a point due east of the beach instead, about 10 km out to sea. Waves at the shore can differ from open water, especially close in where they break, so treat the wave rating as a guide and not as a measurement of the shoreline.
+## Project structure
+
+| File | What it does |
+| --- | --- |
+| `fetch.py` | Requests to Open-Meteo, with warnings for missing values |
+| `combine.py` | Joins weather and sea data into one hourly table and rates each hour |
+| `scoring.py` | All the beach logic: thresholds, score, verdict, deal breakers, categories, best window |
+| `charts.py` | Chart-building functions (Altair) |
+| `app.py` | The Streamlit page: display only, no logic |
+| `make_gifs.py` | Draws the pixel-art GIFs in `assets/` |
+| `test_scoring.py` | Tests for the scoring logic |
 
 ## How I built this
 
-I built this app with [Claude Code](https://claude.com/claude-code), one small step at a time. I'm learning, so the rules in [CLAUDE.md](CLAUDE.md) keep the work at a pace I can follow:
+I built this app with [Claude Code](https://www.anthropic.com/claude-code), an
+AI coding agent, working in small steps rather than asking for the whole app
+at once. The instructions and rules I gave it are in [CLAUDE.md](CLAUDE.md).
 
-- Work only on the step I ask for, and don't build ahead.
-- Keep the code simple enough that I can explain every line.
-- After each step, explain what was done and why, then stop.
-- Claude doesn't commit. I commit each step myself.
+How I worked:
 
-The app grew in this order:
+- **One step at a time:** fetch the weather, then the sea data, then combine
+  them, then the score, then the page. I checked each step myself (for
+  example, comparing values with the raw API response) before committing.
+- **I made the design decisions:** what counts as a good beach day, the deal
+  breakers, ignoring night hours, and how the app should look.
+- **Testing:** the scoring logic has tests for values right on each limit and
+  for missing data. The tests were also checked by deliberately breaking each
+  rule and confirming a test failed (mutation testing).
+- **Data quality:** the app warns about missing values and lost rows, and the
+  offshore limitation of the sea data is documented above.
 
-1. Fetch the hourly weather forecast.
-2. Fetch the sea forecast for the offshore point.
-3. Combine the two, with checks for missing values and lost rows.
-4. Add the beach score, with the daylight rule and deal breakers.
-5. Add animations for the wave, sky and wind conditions.
-6. Show the best time window for the day.
-7. Replace the big table with an hourly strip and a chart.
-8. Prepare the app for deployment.
+## Credits
 
-Working this way also made it easy to correct things as I went. For example, the best window first covered the whole day, so it could show a time that had already passed. In the next step I asked for it to consider only the hours still to come, and for tests that cover a window that's already over.
+Weather and marine data by [Open-Meteo.com](https://open-meteo.com/), used
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
