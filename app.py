@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+from charts import build_data_table, build_hourly_strip, build_score_chart
 from combine import build_table
 from fetch import get_sun_times
 from scoring import (
@@ -63,4 +64,8 @@ else:
 # [11:] skips the date, leaving just the time, like "07:29"
 st.write(f"Sunrise: {sunrise[11:]}  |  Sunset: {sunset[11:]}")
 
-st.dataframe(table, hide_index=True)
+st.html(build_hourly_strip(table, sunrise, sunset))
+st.altair_chart(build_score_chart(table, window), width="stretch")
+
+with st.expander("Show all data"):
+    st.dataframe(build_data_table(table), hide_index=True)
