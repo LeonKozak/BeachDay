@@ -30,6 +30,23 @@ def get_hourly(url, latitude, longitude, variables):
     return table
 
 
+def get_sun_times():
+    """Today's sunrise and sunset at the beach, as text in local time."""
+    params = {
+        "latitude": 38.37,
+        "longitude": -0.41,
+        "daily": ["sunrise", "sunset"],
+        "timezone": "Europe/Madrid",
+        "forecast_days": 1,  # only today
+    }
+
+    response = requests.get(WEATHER_URL, params=params, timeout=10)
+    response.raise_for_status()  # stop with an error if the request failed
+
+    daily = response.json()["daily"]
+    return daily["sunrise"][0], daily["sunset"][0]  # [0] is the first day: today
+
+
 def get_weather():
     """Today's hourly weather at the beach."""
     variables = [
