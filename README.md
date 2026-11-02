@@ -23,6 +23,13 @@ forecasts, and tells you the best time to go.
   home) with the feels-like temperature, and the best window shaded.
 - **All the data** in a collapsible table for anyone who wants the details.
 
+## Why I built this
+
+Playa de San Juan is my favourite beach, and before going I always ended up
+checking several weather and sea forecasts to decide if it was worth it that
+day. I built this app to answer that question in one place: is it a good beach
+day, and when is the best time to go?
+
 ## How the beach score works
 
 Each hour is rated in three steps:
