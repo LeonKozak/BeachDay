@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import requests
 import streamlit as st
@@ -5,6 +7,41 @@ import streamlit as st
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 SEA_URL = "https://marine-api.open-meteo.com/v1/marine"
 CACHE_SECONDS = 3600  # keep each Open-Meteo response for 1 hour
+RETRY_WAITS = [1, 2, 4]  # seconds to wait before each retry
+
+
+def is_worth_retrying(error):
+    """Return True for problems that may clear up: timeouts, lost connections, 5xx."""
+    if isinstance(error, requests.exceptions.HTTPError):
+        return error.response.status_code >= 500
+    return isinstance(
+        error, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)
+    )
+
+
+def request_json(url, params):
+    """Make one request to Open-Meteo and return the JSON it sends back."""
+    response = requests.get(url, params=params, timeout=10)
+    response.raise_for_status()  # stop with an error if the request failed
+    return response.json()
+
+
+def request_json_with_retries(url, params):
+    """Like request_json, but retry when the problem may clear up.
+
+    That's one first try plus one retry for each wait in RETRY_WAITS. If the last
+    try also fails, its error goes up to whoever called this.
+    """
+    for wait in RETRY_WAITS:
+        try:
+            return request_json(url, params)
+        except requests.exceptions.RequestException as error:
+            if not is_worth_retrying(error):
+                raise  # trying again wouldn't help, so pass the error on now
+            print(f"Request failed, retrying in {wait}s: {error}")
+        time.sleep(wait)
+
+    return request_json(url, params)  # the last try
 
 
 @st.cache_data(ttl=CACHE_SECONDS)
@@ -18,10 +55,7 @@ def get_hourly(url, latitude, longitude, variables):
         "forecast_days": 1,  # only today
     }
 
-    response = requests.get(url, params=params, timeout=10)
-    response.raise_for_status()  # stop with an error if the request failed
-
-    table = pd.DataFrame(response.json()["hourly"])
+    table = pd.DataFrame(request_json_with_retries(url, params)["hourly"])
 
     # Count missing values per column and keep only columns that have some
     missing = table.isna().sum()
@@ -44,10 +78,7 @@ def get_sun_times():
         "forecast_days": 1,  # only today
     }
 
-    response = requests.get(WEATHER_URL, params=params, timeout=10)
-    response.raise_for_status()  # stop with an error if the request failed
-
-    daily = response.json()["daily"]
+    daily = request_json_with_retries(WEATHER_URL, params)["daily"]
     return daily["sunrise"][0], daily["sunset"][0]  # [0] is the first day: today
 
 

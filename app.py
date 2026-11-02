@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import requests
 import streamlit as st
 
 from charts import build_data_table, build_hourly_strip, build_score_chart
@@ -19,8 +20,16 @@ ASSETS = Path(__file__).parent / "assets"
 
 st.title("Beach Day: Playa de San Juan")
 
-sunrise, sunset = get_sun_times()
-table = build_table(sunrise, sunset)
+try:
+    sunrise, sunset = get_sun_times()
+    table = build_table(sunrise, sunset)
+except requests.exceptions.RequestException as error:
+    print("Could not fetch the forecast:", error)  # for the logs, not the page
+    st.error(
+        "The forecast service isn't responding right now. "
+        "Please try again in a few minutes."
+    )
+    st.stop()  # nothing below can run without the forecast
 
 # The current hour in Madrid, written the same way as the table's "time" column
 current_time = pd.Timestamp.now(tz="Europe/Madrid").strftime("%Y-%m-%dT%H:00")
