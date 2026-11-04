@@ -6,6 +6,9 @@ forecasts, and tells you the best time to go.
 
 **Live app:** https://beach-day-san-juan.streamlit.app/
 
+*Hosted on Streamlit's free tier: if the app has been asleep, click "wake up"
+and it'll be ready in under a minute.*
+
 ![The app: best time today, current conditions as pixel-art tiles, and an hourly strip](docs/screenshots/app.png)
 
 ![Beach score per hour as coloured bars, with the feels-like temperature as a line](docs/screenshots/chart.png)
@@ -94,6 +97,7 @@ python make_gifs.py
 | `app.py` | The Streamlit page: display only, no logic |
 | `make_gifs.py` | Draws the pixel-art GIFs in `assets/` |
 | `test_scoring.py` | Tests for the scoring logic |
+| `test_fetch.py` | Tests for the retry logic when Open-Meteo has a temporary error |
 
 ## How I built this
 
@@ -108,11 +112,14 @@ How I worked:
   example, comparing values with the raw API response) before committing.
 - **I made the design decisions:** what counts as a good beach day, the deal
   breakers, ignoring night hours, and how the app should look.
-- **Testing:** the scoring logic has tests for values right on each limit and
-  for missing data. The tests were also checked by deliberately breaking each
+- **Testing:** 105 tests cover the scoring logic (values right on each limit
+  and missing data) and the retry logic for temporary API errors. The tests were also checked by deliberately breaking each
   rule and confirming a test failed (mutation testing).
 - **Data quality:** the app warns about missing values and lost rows, and the
   offshore limitation of the sea data is documented above.
+- **Reliability:** API responses are cached for an hour, temporary errors are
+  retried, and if the forecast service is down the page shows a friendly
+  message instead of crashing.
 
 ## Credits
 
