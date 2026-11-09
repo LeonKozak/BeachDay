@@ -8,6 +8,7 @@ import pandas as pd
 from combine import build_table
 from fetch import get_sun_times
 from scoring import (
+    MAX_SCORE,
     find_best_window,
     get_no_window_message,
     get_sky_category,
@@ -89,6 +90,7 @@ def build_forecast_data(hours, sunrise, sunset, current_time, updated_at):
         "updated_at": updated_at,
         "sunrise": sunrise[11:],
         "sunset": sunset[11:],
+        "max_score": MAX_SCORE,
         "best_window": window,
         "no_window_message": no_window_message,
         "current_hour": current_hour,

@@ -1,7 +1,8 @@
 {
-  "updated_at": "2026-11-09T15:06",
+  "updated_at": "2026-11-09T15:14",
   "sunrise": "07:36",
   "sunset": "17:54",
+  "max_score": 10,
   "best_window": {
     "verdict": "Go",
     "start": "15:00",

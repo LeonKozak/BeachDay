@@ -46,6 +46,7 @@ def test_update_time_and_sun_times():
     assert data["updated_at"] == UPDATED_AT
     assert data["sunrise"] == "07:30"
     assert data["sunset"] == "18:30"
+    assert data["max_score"] == scoring.MAX_SCORE
 
 
 def test_only_daylight_hours_are_listed():

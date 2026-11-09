@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beach Day: Playa de San Juan</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Beach Day: Playa de San Juan</h1>
+    <p id="updated" class="muted">Loading the forecast…</p>
+
+    <!-- app.js fills in the empty elements below, finding each one by its id -->
+    <section>
+      <h2 id="best-title"></h2>
+      <p id="best-details"></p>
+      <p id="no-window" class="warning" hidden></p>
+    </section>
+
+    <section>
+      <h2 id="now-title"></h2>
+      <p id="now-score"></p>
+      <div id="tiles" class="tiles"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
