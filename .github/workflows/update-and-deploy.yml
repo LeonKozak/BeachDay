@@ -1,4 +1,5 @@
-# Every hour: test the code, make a fresh forecast, save it, and publish the site.
+# Every hour: test the code, make a fresh forecast, and publish the site.
+# forecast.json is made new on each run and deployed, never committed.
 name: Update forecast and deploy
 
 on:
@@ -10,7 +11,7 @@ on:
     branches: [main]
   workflow_dispatch: # adds a "Run workflow" button on the Actions tab
 
-# Only one run at a time, so two runs never push or deploy over each other.
+# Only one run at a time, so two runs never deploy over each other.
 # A new run waits for the current one instead of cancelling it.
 concurrency:
   group: update-and-deploy
@@ -23,7 +24,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # to push the new forecast.json to the repository
+      contents: read # to get the code; nothing is pushed back
     steps:
       - name: Get the code
         uses: actions/checkout@v4
@@ -31,7 +32,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.15"
+          python-version: "3.12"
           cache: pip # reuse downloaded packages from earlier runs
 
       - name: Install requirements
@@ -43,18 +44,6 @@ jobs:
 
       - name: Make a fresh forecast
         run: python export_forecast.py
-
-      # git diff --staged --quiet succeeds when nothing changed, so the part
-      # after || (commit and push) only runs when forecast.json is different
-      - name: Save the forecast if it changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/forecast.json
-          git diff --staged --quiet || {
-            git commit -m "Update forecast for $(TZ=Europe/Madrid date '+%Y-%m-%d %H:00')"
-            git push
-          }
 
       # Packs the site folder up in the form GitHub Pages expects
       - name: Upload the site
