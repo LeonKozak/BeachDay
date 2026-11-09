@@ -9,7 +9,9 @@ It comes in two versions:
 - **Live page:** https://leonkozak.github.io/BeachDay/ — a fast static page,
   updated every hour by GitHub Actions.
 - **Full app:** https://beach-day-san-juan.streamlit.app/ — the Streamlit
-  version, with the hourly strip, chart and data table.
+  version, with the hourly strip, chart and data table. It's hosted on
+  Streamlit's free tier: if the app has been asleep, click "wake up" and it'll
+  be ready in under a minute.
 
 ![The app: best time today, current conditions as pixel-art tiles, and an hourly strip](docs/screenshots/app.png)
 
@@ -144,11 +146,14 @@ How I worked:
   example, comparing values with the raw API response) before committing.
 - **I made the design decisions:** what counts as a good beach day, the deal
   breakers, ignoring night hours, and how the app should look.
-- **Testing:** the scoring logic has tests for values right on each limit and
-  for missing data. The tests were also checked by deliberately breaking each
+- **Testing:** 105 tests cover the scoring logic (values right on each limit
+  and missing data) and the retry logic for temporary API errors. The tests were also checked by deliberately breaking each
   rule and confirming a test failed (mutation testing).
 - **Data quality:** the app warns about missing values and lost rows, and the
   offshore limitation of the sea data is documented above.
+- **Reliability:** API responses are cached for an hour, temporary errors are
+  retried, and if the forecast service is down the page shows a friendly
+  message instead of crashing.
 
 ## Credits
 
