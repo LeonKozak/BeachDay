@@ -17,20 +17,12 @@ from scoring import (
 )
 
 ASSETS = Path(__file__).parent / "assets"
-CACHE_SECONDS = 3600  # keep the forecast for 1 hour
-
-
-@st.cache_data(ttl=CACHE_SECONDS)
-def load_forecast():
-    """Fetch today's sun times and combined table, cached so reloads don't refetch."""
-    sunrise, sunset = get_sun_times()
-    return sunrise, sunset, build_table(sunrise, sunset)
-
 
 st.title("Beach Day: Playa de San Juan")
 
 try:
-    sunrise, sunset, table = load_forecast()
+    sunrise, sunset = get_sun_times()
+    table = build_table(sunrise, sunset)
 except requests.exceptions.RequestException as error:
     print("Could not fetch the forecast:", error)  # for the logs, not the page
     st.error(

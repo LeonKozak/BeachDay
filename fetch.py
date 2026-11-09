@@ -2,9 +2,11 @@ import time
 
 import pandas as pd
 import requests
+import streamlit as st
 
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 SEA_URL = "https://marine-api.open-meteo.com/v1/marine"
+CACHE_SECONDS = 3600  # keep each Open-Meteo response for 1 hour
 RETRY_WAITS = [1, 2, 4]  # seconds to wait before each retry
 
 
@@ -42,6 +44,7 @@ def request_json_with_retries(url, params):
     return request_json(url, params)  # the last try
 
 
+@st.cache_data(ttl=CACHE_SECONDS)
 def get_hourly(url, latitude, longitude, variables):
     """Ask Open-Meteo for today's hourly values and return them as a table."""
     params = {
@@ -64,6 +67,7 @@ def get_hourly(url, latitude, longitude, variables):
     return table
 
 
+@st.cache_data(ttl=CACHE_SECONDS)
 def get_sun_times():
     """Today's sunrise and sunset at the beach, as text in local time."""
     params = {
