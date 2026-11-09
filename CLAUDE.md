@@ -8,3 +8,11 @@ A small Streamlit web app that tells me whether today is a good beach day at Pla
 - After each step, briefly explain what you did and why, then stop.
 - Don't commit. I'll commit myself.
 - Out of scope unless I ask: historical data, other beaches, accounts, notifications.
+
+## Current goal: move from Streamlit to a static site
+The live app moves from Streamlit Community Cloud to GitHub Pages, so it never sleeps.
+- A GitHub Action runs every hour: runs the tests, runs the Python pipeline, and
+  writes the results to `site/forecast.json`, then deploys `site/` to GitHub Pages.
+- `site/` is a plain static page (HTML, CSS, a little JavaScript, no framework)
+  that only displays forecast.json. All scoring stays in Python.
+- The page shows the forecast as of the last hourly run, with the update time.
