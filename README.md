@@ -1,13 +1,17 @@
 # Beach Day: Playa de San Juan
 
-**Is today a good beach day?** A Streamlit web app that scores beach conditions
-hour by hour at Playa de San Juan (Alicante, Spain) from live weather and sea
+**Is today a good beach day?** A web app that scores beach conditions hour by
+hour at Playa de San Juan (Alicante, Spain) from live weather and sea
 forecasts, and tells you the best time to go.
 
-**Live app:** https://beach-day-san-juan.streamlit.app/
+It comes in two versions:
 
-*Hosted on Streamlit's free tier: if the app has been asleep, click "wake up"
-and it'll be ready in under a minute.*
+- **Live page:** https://leonkozak.github.io/BeachDay/ — a fast static page,
+  updated every hour by GitHub Actions.
+- **Full app:** https://beach-day-san-juan.streamlit.app/ — the Streamlit
+  version, with the hourly strip, chart and data table. It's hosted on
+  Streamlit's free tier: if the app has been asleep, click "wake up" and it'll
+  be ready in under a minute.
 
 ![The app: best time today, current conditions as pixel-art tiles, and an hourly strip](docs/screenshots/app.png)
 
@@ -67,12 +71,40 @@ wave pictures use the same constants, so they always agree with the score.
 - The verdict is a forecast-based estimate, **not the official lifeguard
   flag**. Always follow the flags and lifeguards on the beach.
 
+## How the live page stays up to date
+
+A GitHub Actions workflow (`.github/workflows/update-and-deploy.yml`) runs
+every hour:
+
+1. Installs the requirements and runs the tests. If any test fails, it stops.
+2. Runs `export_forecast.py`, which fetches the latest forecast, scores it and
+   writes `site/forecast.json`.
+3. Publishes the `site` folder to GitHub Pages.
+
+The page itself (`site/`) is plain HTML, CSS and JavaScript. It only displays
+`forecast.json`; all the scoring happens in Python, so both versions always
+give the same verdict.
+
 ## Run it locally
 
 ```
 python -m pip install -r requirements.txt
+```
+
+The Streamlit app:
+
+```
 python -m streamlit run app.py
 ```
+
+The static page (it has to be served, not opened as a file):
+
+```
+python export_forecast.py
+python -m http.server 8000 --directory site
+```
+
+Then open http://localhost:8000.
 
 Run the tests:
 
@@ -95,9 +127,11 @@ python make_gifs.py
 | `scoring.py` | All the beach logic: thresholds, score, verdict, deal breakers, categories, best window |
 | `charts.py` | Chart-building functions (Altair) |
 | `app.py` | The Streamlit page: display only, no logic |
+| `export_forecast.py` | Writes today's forecast to `site/forecast.json` for the static page |
+| `site/` | The static page: `index.html`, `style.css`, `app.js` and the GIFs |
 | `make_gifs.py` | Draws the pixel-art GIFs in `assets/` |
-| `test_scoring.py` | Tests for the scoring logic |
-| `test_fetch.py` | Tests for the retry logic when Open-Meteo has a temporary error |
+| `test_*.py` | Tests for the scoring, data fetching and export |
+| `.github/workflows/` | The hourly update and deploy workflow |
 
 ## How I built this
 
